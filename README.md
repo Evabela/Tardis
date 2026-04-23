@@ -13,12 +13,15 @@
 The Tardis project involves creating a predictive model for train delays, after cleaning a CSV file. Our goal is to Analyze historical train delay data, uncover hidden patterns, and develop a predictive model that can forecast delays before they happen.
 
 Key features implemented:
-- Advanced syntax: Support for negation, globbing (*, ?, [, ]), backticks, and execution in subshells using parentheses.
-- System management: Job control (using &, fg, bg), variable management (locals, environment variables, and special variables such as term or cwd).
-- Interactive tools: Command history (!), alias creation, advanced line editing (auto-completion, multi-line), and script execution.
-    
-Technical restrictions: The project uses only the `libC` and `ncurses` libraries, with strict compilation rules managed by a `Makefile`.
-### ▶️ Compilation
-- To compile the project, type : `make`
-- To run the project, type : `./42sh`
-- To exit the project type : `exit`
+- Data Cleaning & Preprocessing – Handle missing values, inconsistencies, and prepare the dataset for analysis.
+- Exploratory Data Analysis (EDA) – Generate insightful visualizations to understand trends and correlations.
+- Predictive Modeling – Implement a basic machine learning model to predict train delays.
+- Dashboard Development – Create an interactive web app using Streamlit to display insights and allow user interaction.
+
+## Files on repository
+- `requirements.txt` : All project dependencies
+- `tardis_eda.ipynb` : Data cleaning, exploration, and feature engineering
+- `cleaned_dataset.csv` : Processed dataset output from EDA notebook
+- `tardis_model.ipynb` : Model training, evaluation, and selection
+- `model.pkl` or `model.joblib` : Trained model file
+- `tardis_dashboard.py` : Interactive Streamlit dashboard
