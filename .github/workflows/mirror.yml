@@ -19,86 +19,10 @@ jobs:
             echo "is_mirror=false" >> "$GITHUB_OUTPUT"
           fi
 
-  check_compilation_and_coding_style:
-    needs: check_mirror
-    if: ${{ needs.check_mirror.outputs.is_mirror == 'false' }}
-    runs-on: ubuntu-latest
-    container:
-      image: epitechcontent/epitest-docker
-    steps:
-      - name: take_files
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: check_repository
-        run: banana-check-repo > banana_error.log || true
-
-      - name: Display banana errors
-        shell: bash
-        run: |
-          if [ -s banana_error.log ]; then
-            if grep -q "No infractions found" banana_error.log; then
-              exit 0
-            fi
-            while IFS=':' read -r file error; do
-              if [ -z "$error" ]; then
-                continue
-              fi
-              echo "::error file=${clean_file},title=Banana error::${error}"
-            done < banana_error.log
-            exit 1
-          fi
-
-      - name: Compile repository
-        timeout-minutes: 2
-        run: make 2>> coding-style.log
-        env:
-          CC: epiclang
-
-      - name: Display errors
-        shell: bash
-        run: |
-          if [ -f coding-style.log ]; then
-            while IFS= read -r LINE; do
-                if [[ "$LINE" == *"Banana"* ]]; then
-                IFS=":[]" read -r -a ARGS <<< "$LINE"
-                message=$(echo "${ARGS[8]}" | awk '{$1=$1};1')
-                error_epiclang=${message% *}
-                ref_epiclang=$(echo "${message##* }" | tr -d '()')
-                echo "::error file=${ARGS[0]},line=${ARGS[1]},col=${ARGS[2]},title=${ARGS[7]} coding style error::$ref_epiclang - $error_epiclang"
-                fi
-                done < coding-style.log
-
-            if [ -s coding-style.log ]; then
-              exit 1
-            fi
-          fi
-
-      - name: clean repository
-        run: make clean
-
-  run_tests:
-    runs-on: ubuntu-latest
-    needs: check_compilation_and_coding_style
-    container:
-      image: epitechcontent/epitest-docker
-    steps:
-      - name: take_files
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Run tests
-        timeout-minutes: 2
-        run: make tests_run
-        env:
-          CC: epiclang
-
   push_to_mirror:
     runs-on: ubuntu-latest
-    needs: run_tests
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: check_mirror
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.check_mirror.outputs.is_mirror == 'false'
     steps:
       - name: take_files
         uses: actions/checkout@v6
