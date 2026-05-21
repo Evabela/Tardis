@@ -49,7 +49,12 @@ with col2:
     ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
     st.pyplot(fig)
 
-
+def does_route_exists(df, start, end):
+    possibilities = df.groupby("Departure station").aggregate("sum").reset_index()
+    possibilities = possibilities[(possibilities["Departure station"] == start) & (possibilities["Arrival station"].str.contains(end))]
+    if len(possibilities) == 0:
+        return False
+    return True
 
 with st.sidebar:
     st.title("Prévisions des retards SNCF")
@@ -65,4 +70,7 @@ with st.sidebar:
         if st.session_state.departure_station == st.session_state.arrival_station:
             st.error("Les stations de départ et d'arrivée ne peuvent pas être les mêmes.")
             st.stop()
-        st.write("Utiliser le modèle ici")
+        if not does_route_exists(df, st.session_state.departure_station, st.session_state.arrival_station):
+            st.info("Impossible de prédire le retard")
+            st.stop()
+        st.write("Prévision")
