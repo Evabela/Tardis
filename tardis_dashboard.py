@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import datetime
 
 df = pd.read_csv("cleaned_dataset.csv", sep=";")
 
@@ -54,8 +55,14 @@ with st.sidebar:
     st.title("Prévisions des retards SNCF")
     st.selectbox("Station de départ", existing_departure_stations, key="departure_station", index=None, placeholder="Sélectionnez une station de départ")
     st.selectbox("Station d'arrivée", existing_arrival_stations, key="arrival_station", index=None, placeholder="Sélectionnez une station d'arrivée")
-    st.date_input("Date de départ", key="departure_date")
+    st.date_input("Date de départ", key="departure_date", min_value="today", format="DD/MM/YYYY")
     st.selectbox("Type de Train", ["National", "International"], key="train_type", index=None, placeholder="Sélectionnez un type de train")
 
-    if st.button("Afficher les prévisions de retards", type="primary") and st.session_state.departure_station is not None and st.session_state.arrival_station is not None and st.session_state.departure_date is not None and st.session_state.train_type is not None:
+    if st.button("Afficher les prévisions de retards", type="primary") :
+        if st.session_state.departure_station is None or st.session_state.arrival_station is None or st.session_state.departure_date is None or st.session_state.train_type is None:
+            st.warning("Valeur.s manquante.s")
+            st.stop()
+        if st.session_state.departure_station == st.session_state.arrival_station:
+            st.error("Les stations de départ et d'arrivée ne peuvent pas être les mêmes.")
+            st.stop()
         st.write("Utiliser le modèle ici")
