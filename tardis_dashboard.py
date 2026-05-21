@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import datetime
+import joblib
 
 df = pd.read_csv("cleaned_dataset.csv", sep=";")
 
@@ -8,16 +8,21 @@ existing_departure_stations = df["Departure station"].unique()
 existing_arrival_stations = df["Arrival station"].unique()
 
 st.title("Analyses des données de la SNCF")
+st.set_page_config("Analyses des données de la SNCF", page_icon=":bullettrain_side:", layout="wide",
+                   menu_items={'About': "Welcome to our interactive dashboard which allows you to predict future delays on a train journey."})
 
-# Chart of the evolution of the number of real trains over the years
-data = df.groupby("Year")["Number of real trains"].sum().reset_index()
-data["Year"] = data["Year"].astype(str)
+#Load of the prediction's model
+@st.cache_resource
+def load_model():
+    return joblib.load("model.joblib")
 
-col1, col2 = st.columns(2)
+model = load_model()
 
-with col1:
-    st.subheader("Évolution du nombre de trains réels")
-    st.line_chart(data.set_index("Year")["Number of real trains"], height=400)
+# Correlation between trains late at departure and their departure station
+temp = df.groupby("Departure station").aggregate("sum").reset_index()
+temp['Correlation late / nb of trains'] = 100 * temp['Number of cancelled trains'] / temp['Number of real trains']
+
+tab1, tab2 = st.tabs(["Statistics", "Predictions"])
 
 # Pie chart of the cause of delays
 causes_cols = [
@@ -40,7 +45,9 @@ causes_means.index = [
     "Prise en charge voyageurs"
 ]
 
-with col2:
+with tab1:
+    st.subheader("Pourcentage de trains en retard au départ par rapport à la station")
+    st.bar_chart(temp, x="Departure station", y="Correlation late / nb of trains", height=400, x_label="Station de départ", y_label="Pourcentage")
     st.subheader("Répartition des causes de retards")
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=(8, 8))
@@ -49,12 +56,38 @@ with col2:
     ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
     st.pyplot(fig)
 
+with tab2:
+    st.text("Hey")
+
 def does_route_exists(df, start, end):
     possibilities = df.groupby("Departure station").aggregate("sum").reset_index()
     possibilities = possibilities[(possibilities["Departure station"] == start) & (possibilities["Arrival station"].str.contains(end))]
     if len(possibilities) == 0:
         return False
     return True
+
+def get_values_dataset(df: pd.DataFrame, start, stop, month):
+    """
+    We put the values needed by the model in a dict
+    """
+    values = {'season':"", 'nb trains': 0, 'journey time': 0.0, 'scheduled': 0, 'delayed': 0, 'prev month': 0.0}
+    temp = df[(df["Departure station"] == start) & (df["Arrival station"] == stop)]
+
+    #Get correct season
+    if month in [12, 1, 2]:
+        values["season"] = "Winter"
+    elif month in [3, 4, 5]:
+        values["season"] = "Spring"
+    elif month in [6, 7, 8]:
+        values["season"] = "Summer"
+    else :
+        values["season"] = "Autumn"
+    values["nb trains"] = temp["Number of real trains"].mean()
+    values["journey time"] = temp["Average journey time"].mean()
+    values["scheduled"] = temp["Number of scheduled trains"].mean()
+    values["delayed"] = temp["Number of trains delayed > 15min"].mean()
+    values["prev month"] = temp["Delay previous month"].mean()
+    return values
 
 with st.sidebar:
     st.title("Prévisions des retards SNCF")
@@ -73,4 +106,28 @@ with st.sidebar:
         if not does_route_exists(df, st.session_state.departure_station, st.session_state.arrival_station):
             st.info("Impossible de prédire le retard")
             st.stop()
-        st.write("Prévision")
+        try:
+            journey_date = st.session_state.departure_date
+            departure = st.session_state.departure_station
+            arrival = st.session_state.arrival_station
+            service = st.session_state.train_type
+            values = get_values_dataset(df, departure, arrival, journey_date.month)
+            donnees_entree = pd.DataFrame({
+                'Year': [journey_date.year],
+                'Month': [journey_date.month],
+                'Service': [service],
+                'Season': [values["season"]],
+                'Departure station': [departure],
+                'Arrival station': [arrival],
+                'Number of real trains': [values["nb trains"]],
+                'Average journey time': [values["journey time"]],
+                'Number of scheduled trains': [values["scheduled"]],
+                'Number of trains delayed > 15min': [values["delayed"]],
+                'Delay previous month': [values["prev month"]]
+            })
+            prediction = model.predict(donnees_entree)[0]
+            retard_estime = max(0, prediction)
+            st.success(f"⏱️ Retard estimé : **{retard_estime:.0f} minutes**")
+        except Exception as e:
+            st.error("Erreur lors de la prédiction.")
+            st.warning(f"Détail technique : {e}")
