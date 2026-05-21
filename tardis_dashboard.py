@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import datetime
 
 df = pd.read_csv("cleaned_dataset.csv", sep=";")
 
