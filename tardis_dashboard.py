@@ -22,7 +22,7 @@ model = load_model()
 temp = df.groupby("Departure station").aggregate("sum").reset_index()
 temp['Correlation late / nb of trains'] = 100 * temp['Number of cancelled trains'] / temp['Number of real trains']
 
-tab1, tab2 = st.tabs(["Statistics", "Predictions"])
+tab1, tab2 = st.tabs(["Statistiques", "Prédictions"])
 
 # Pie chart of the cause of delays
 causes_cols = [
@@ -57,7 +57,7 @@ with tab1:
     st.pyplot(fig)
 
 with tab2:
-    st.text("Hey")
+    st.text("Example")
 
 def does_route_exists(df, start, end):
     possibilities = df.groupby("Departure station").aggregate("sum").reset_index()
@@ -125,8 +125,7 @@ with st.sidebar:
                 'Number of trains delayed > 15min': [values["delayed"]],
                 'Delay previous month': [values["prev month"]]
             })
-            prediction = model.predict(donnees_entree)[0]
-            retard_estime = max(0, prediction)
+            retard_estime = max(0, model.predict(donnees_entree)[0])
             st.success(f"⏱️ Retard estimé : **{retard_estime:.0f} minutes**")
         except Exception as e:
             st.error("Erreur lors de la prédiction.")
