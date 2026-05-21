@@ -12,12 +12,42 @@ st.title("Analyses des données de la SNCF")
 data = df.groupby("Year")["Number of real trains"].sum().reset_index()
 data["Year"] = data["Year"].astype(str)
 
-tab1 = st.tabs(["Évolution du nombre de trains réels au fil des années"])[0]
-tab1.line_chart(data.set_index("Year")["Number of real trains"], height=400)
+col1, col2 = st.columns(2)
 
-#Pie chart of the cause of delays
+with col1:
+    st.subheader("Évolution du nombre de trains réels")
+    st.line_chart(data.set_index("Year")["Number of real trains"], height=400)
 
-#Chercher des graphique à afficher dans la partie principale du dashboard
+# Pie chart of the cause of delays
+causes_cols = [
+    "Pct delay due to external causes",
+    "Pct delay due to infrastructure",
+    "Pct delay due to traffic management",
+    "Pct delay due to rolling stock",
+    "Pct delay due to station management and equipment reuse",
+    "Pct delay due to passenger handling"
+]
+causes_means = df[causes_cols].mean()
+
+# Rename the index
+causes_means.index = [
+    "Causes externes",
+    "Infrastructure",
+    "Gestion du trafic",
+    "Matériel roulant",
+    "Gestion en gare",
+    "Prise en charge voyageurs"
+]
+
+with col2:
+    st.subheader("Répartition des causes de retards")
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots(figsize=(8, 8))
+    colors = plt.cm.Paired.colors
+    ax.pie(causes_means, labels=causes_means.index, autopct='%1.1f%%', startangle=90, colors=colors, textprops={'fontsize': 10})
+    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    st.pyplot(fig)
+
 
 
 with st.sidebar:
