@@ -154,8 +154,11 @@ with model_stats:
     st.markdown("Le modèle a une précision de 78% sur les données de test. avec un écart-type de 3% en moyenne")
     st.subheader("📊 Moyenne de différence avec des vrais retards")
     st.markdown("En moyenne, le modèle prédit un retard avec 1.18 minutes de différence par rapport aux retards réels.")
-    st.subheader(" Données d'entraînement")
-
+    st.subheader("ℹ️ Données d'entraînement")
+    st.markdown("Le modèle a été entraîné sur un ensemble de données contenant 10,000 trajets.")
+    st.subheader("🔠 Données les plus influentes pour la prédiction")
+    url_image = "https://i.postimg.cc/MHgw7Pnn/Screenshot-from-2026-05-22-18-52-53.png"
+    st.image(url_image, caption="Graphique d'importance du modèle", use_container_width=True)
 
 with st.sidebar:
     st.title("Prévisions des retards SNCF")
