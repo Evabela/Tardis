@@ -27,7 +27,7 @@ st.markdown(
     <style>
     /* Adjusting metrics for theme compatibility */
     [data-testid="stMetric"] {
-        background-color: rgba(151, 166, 195, 0.1);
+        background-color: rgba(9, 38, 74, 0.3);
         padding: 15px;
         border-radius: 10px;
         border: 1px solid rgba(151, 166, 195, 0.2);
@@ -78,6 +78,26 @@ def convert_minutes(mins):
 
 st.session_state.save_values = None
 
+def print_city(df, name):
+    start = df[df["Departure station"] == name]
+    end = df[df["Arrival station"] == name]
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Nombre de trains passant par cette station", f"{df["Number of real trains"].mean():.0f}")
+        pct_cancel = 100 * start["Number of cancelled trains"] / start["Number of scheduled trains"]
+        st.metric("Pourcentage de trains annulés", f"{pct_cancel.mean():.2f} %")
+    with col2:
+        pct_late = 100 * end["Number of trains delayed at departure"] / end["Number of real trains"]
+        st.metric("Pourcentage de trains en retard au départ", f"{pct_late.mean():.2f} %")
+        pct_late = 100 * end["Number of trains delayed at arrival"] / end["Number of real trains"]
+        st.metric("Pourcentage de trains en retard à l'arrivée", f"{pct_late.mean():.2f} %")
+    with col3:
+        av_late = convert_minutes(start["Average delay of late trains at departure"].mean())
+        st.metric("Moyenne des retards au départ", f"{str(av_late["hours"]) + "h" if av_late["hours"] != 0 else ""}{av_late["minutes"]} min")
+        av_late = convert_minutes(start["Average delay of late trains at arrival"].mean())
+        st.metric("Moyenne des retards à l'arrivée", f"{str(av_late["hours"]) + "h" if av_late["hours"] != 0 else ""}{av_late["minutes"]} min")
+
+# Statistics from dataset
 with stats:
     st.markdown("## Temps de trajet en fonction du service")
     st.markdown("Avec :\n- Nationaux : les trains reliant deux gares françaises\n- Internationaux : les trains reliant une gare française et une gare internationnale.")
@@ -109,6 +129,10 @@ with stats:
     st.divider()
 
     st.markdown("## Statistiques par stations")
+    list_cities = df["Departure station"].unique()
+    station = st.selectbox("Sélectionner une station pour voir ses informations", list_cities, placeholder="Sélectionnez une station")
+    if station:
+        print_city(df, station)
 
 # Pie chart of the cause of delays
 causes_cols = [
@@ -134,15 +158,17 @@ causes_means.index = [
 # Correlation between trains late at departure and their departure station
 temp = df.groupby("Departure station").aggregate("sum").reset_index()
 temp['Correlation late / nb of trains'] = 100 * temp['Number of cancelled trains'] / temp['Number of real trains']
+temp = temp.sort_values("Correlation late / nb of trains", ascending=False).head(10)
 
 with graphs:
-    st.subheader("Pourcentage de trains en retard au départ par rapport à la station")
-    st.bar_chart(temp, x="Departure station", y="Correlation late / nb of trains", height=400, x_label="Station de départ", y_label="Pourcentage")
-    st.divider()
-    st.subheader("Répartition des causes de retards")
-    col1, col2, col3 = st.columns([1, 3, 1])
+    col1, col2 = st.columns([3, 2])
+    with col1:
+        st.subheader("Pourcentage de trains en retard au départ par rapport à la station")
+        st.bar_chart(temp, x="Departure station", y="Correlation late / nb of trains", height=400, x_label="Station de départ", y_label="Pourcentage", color="#3C62BD")
+        st.divider()
     with col2:
-        fig1, ax1 = plt.subplots(figsize=(8, 8))
+        st.subheader("Répartition des causes de retards")
+        fig1, ax1 = plt.subplots(figsize=(5, 5))
         colors = plt.cm.Paired.colors
         ax1.pie(causes_means, labels=causes_means.index, autopct='%1.1f%%', startangle=90, colors=colors, textprops={'fontsize': 10})
         ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
