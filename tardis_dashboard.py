@@ -117,26 +117,26 @@ with stats:
     with col1:
         avg_nat = df[df["Service"] == "National"]["Average journey time"].mean()
         conv_nat = convert_minutes(avg_nat)
-        st.markdown(f"#### Temps moyen de voyage au national: {str(conv_nat["hours"]) + "h" if conv_nat["hours"] != 0 else ""}{conv_nat["minutes"]} min")
+        st.metric("Temps moyen de voyage au national", f"{str(conv_nat["hours"]) + "h" if conv_nat["hours"] != 0 else ""}{conv_nat["minutes"]} min")
     with col2:
         avg_inter = df[df["Service"] == "International"]["Average journey time"].mean()
         conv_inter = convert_minutes(avg_inter)
-        st.markdown(f"#### Temps moyen de voyage à l'international: {str(conv_inter["hours"]) + "h" if conv_inter["hours"] != 0 else ""}{conv_inter["minutes"]} min")
+        st.metric("Temps moyen de voyage à l'international", f"{str(conv_inter["hours"]) + "h" if conv_inter["hours"] != 0 else ""}{conv_inter["minutes"]} min")
     st.divider()
 
     st.markdown("## Trains prévus et retardés")
-    st.markdown(f"#### Non-annulés: {100 * (1 - df["Number of cancelled trains"].sum() / df["Number of scheduled trains"].sum()):.2f} %")
+    st.metric("Non-annulés", f"{100 * (1 - df["Number of cancelled trains"].sum() / df["Number of scheduled trains"].sum()):.2f} %")
     col1, col2 = st.columns(2)
     with col1:
         late = convert_minutes(df["Average delay of late trains at departure"].mean())
-        st.markdown(f"#### Retards moyen au départ: {str(late["hours"]) + "h" if late["hours"] != 0 else ""}{late["minutes"]} min")
+        st.metric("Retards moyen au départ", f"{str(late["hours"]) + "h" if late["hours"] != 0 else ""}{late["minutes"]} min")
         delay = convert_minutes(df["Average delay of all trains at departure"].mean())
-        st.markdown(f"#### Temps moyen au départ: {str(delay["hours"]) + "h" if delay["hours"] != 0 else ""}{delay["minutes"]} min")
+        st.metric("Temps moyen au départ", f"{str(delay["hours"]) + "h" if delay["hours"] != 0 else ""}{delay["minutes"]} min")
     with col2:
         late = convert_minutes(df["Average delay of late trains at arrival"].mean())
-        st.markdown(f"#### Retards moyen à l'arrivée: {str(late["hours"]) + "h" if late["hours"] != 0 else ""}{late["minutes"]} min")
+        st.metric("Retards moyen à l'arrivée", f"{str(late["hours"]) + "h" if late["hours"] != 0 else ""}{late["minutes"]} min")
         delay = convert_minutes(df["Average delay of all trains at arrival"].mean())
-        st.markdown(f"#### Temps moyen à l'arrivée: {str(delay["hours"]) + "h" if delay["hours"] != 0 else ""}{delay["minutes"]} min")
+        st.metric("Temps moyen à l'arrivée", f"{str(delay["hours"]) + "h" if delay["hours"] != 0 else ""}{delay["minutes"]} min")
     st.divider()
 
     st.markdown("## Statistiques par stations")
