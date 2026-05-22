@@ -27,7 +27,7 @@ st.markdown(
     <style>
     /* Adjusting metrics for theme compatibility */
     [data-testid="stMetric"] {
-        background-color: rgba(151, 166, 195, 0.1);
+        background-color: rgba(9, 38, 74, 0.3);
         padding: 15px;
         border-radius: 10px;
         border: 1px solid rgba(151, 166, 195, 0.2);
@@ -78,6 +78,26 @@ def convert_minutes(mins):
 
 st.session_state.save_values = None
 
+def print_city(df, name):
+    start = df[df["Departure station"] == name]
+    end = df[df["Arrival station"] == name]
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Nombre de trains passant par cette station", f"{df["Number of real trains"].mean():.0f}")
+        pct_cancel = 100 * start["Number of cancelled trains"] / start["Number of scheduled trains"]
+        st.metric("Pourcentage de trains annulés", f"{pct_cancel.mean():.2f} %")
+    with col2:
+        pct_late = 100 * end["Number of trains delayed at departure"] / end["Number of real trains"]
+        st.metric("Pourcentage de trains en retard au départ", f"{pct_late.mean():.2f} %")
+        pct_late = 100 * end["Number of trains delayed at arrival"] / end["Number of real trains"]
+        st.metric("Pourcentage de trains en retard à l'arrivée", f"{pct_late.mean():.2f} %")
+    with col3:
+        av_late = convert_minutes(start["Average delay of late trains at departure"].mean())
+        st.metric("Moyenne des retards au départ", f"{str(av_late["hours"]) + "h" if av_late["hours"] != 0 else ""}{av_late["minutes"]} min")
+        av_late = convert_minutes(start["Average delay of late trains at arrival"].mean())
+        st.metric("Moyenne des retards à l'arrivée", f"{str(av_late["hours"]) + "h" if av_late["hours"] != 0 else ""}{av_late["minutes"]} min")
+
+# Statistics from dataset
 with stats:
     st.markdown("## Temps de trajet en fonction du service")
     st.markdown("Avec :\n- Nationaux : les trains reliant deux gares françaises\n- Internationaux : les trains reliant une gare française et une gare internationnale.")
@@ -109,6 +129,10 @@ with stats:
     st.divider()
 
     st.markdown("## Statistiques par stations")
+    list_cities = df["Departure station"].unique()
+    station = st.selectbox("Sélectionner une station pour voir ses informations", list_cities, placeholder="Sélectionnez une station", index=None)
+    if station:
+        print_city(df, station)
 
 # Pie chart of the cause of delays
 causes_cols = [
