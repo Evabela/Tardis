@@ -130,7 +130,7 @@ with stats:
 
     st.markdown("## Statistiques par stations")
     list_cities = df["Departure station"].unique()
-    station = st.selectbox("Sélectionner une station pour voir ses informations", list_cities, placeholder="Sélectionnez une station", index=None)
+    station = st.selectbox("Sélectionner une station pour voir ses informations", list_cities, placeholder="Sélectionnez une station")
     if station:
         print_city(df, station)
 
@@ -158,15 +158,17 @@ causes_means.index = [
 # Correlation between trains late at departure and their departure station
 temp = df.groupby("Departure station").aggregate("sum").reset_index()
 temp['Correlation late / nb of trains'] = 100 * temp['Number of cancelled trains'] / temp['Number of real trains']
+temp = temp.sort_values("Correlation late / nb of trains", ascending=False).head(10)
 
 with graphs:
-    st.subheader("Pourcentage de trains en retard au départ par rapport à la station")
-    st.bar_chart(temp, x="Departure station", y="Correlation late / nb of trains", height=400, x_label="Station de départ", y_label="Pourcentage")
-    st.divider()
-    st.subheader("Répartition des causes de retards")
-    col1, col2, col3 = st.columns([1, 3, 1])
+    col1, col2 = st.columns([3, 2])
+    with col1:
+        st.subheader("Pourcentage de trains en retard au départ par rapport à la station")
+        st.bar_chart(temp, x="Departure station", y="Correlation late / nb of trains", height=400, x_label="Station de départ", y_label="Pourcentage", color="#3C62BD")
+        st.divider()
     with col2:
-        fig1, ax1 = plt.subplots(figsize=(8, 8))
+        st.subheader("Répartition des causes de retards")
+        fig1, ax1 = plt.subplots(figsize=(5, 5))
         colors = plt.cm.Paired.colors
         ax1.pie(causes_means, labels=causes_means.index, autopct='%1.1f%%', startangle=90, colors=colors, textprops={'fontsize': 10})
         ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
