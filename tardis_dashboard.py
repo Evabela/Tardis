@@ -79,6 +79,9 @@ def convert_minutes(mins):
 st.session_state.save_values = None
 
 def print_city(df, name):
+    """
+    Print statistics on the selected city
+    """
     start = df[df["Departure station"] == name]
     end = df[df["Arrival station"] == name]
     col1, col2, col3 = st.columns(3)
@@ -96,6 +99,14 @@ def print_city(df, name):
         st.metric("Moyenne des retards au départ", f"{str(av_late["hours"]) + "h" if av_late["hours"] != 0 else ""}{av_late["minutes"]} min")
         av_late = convert_minutes(start["Average delay of late trains at arrival"].mean())
         st.metric("Moyenne des retards à l'arrivée", f"{str(av_late["hours"]) + "h" if av_late["hours"] != 0 else ""}{av_late["minutes"]} min")
+    
+    #Graphic for city in function of year selected
+    st.subheader("Évolution au fil des années")
+    year = st.radio("Sélectionnez une année", sorted(df["Year"].unique()), horizontal=True)
+    start_year = start[start["Year"] == year].groupby("Month")["Average delay of late trains at departure"].mean()
+    end_year = end[end["Year"] == year].groupby("Month")["Average delay of late trains at arrival"].mean()
+    chart_data = pd.DataFrame({"Retard au départ": start_year, "Retard à l'arrivée": end_year}).interpolate().fillna(0)
+    st.line_chart(chart_data, x_label="Mois de janvier à décembre", y_label="Nombre moyen de trains en retard")    
 
 # Statistics from dataset
 with stats:
@@ -165,7 +176,6 @@ with graphs:
     with col1:
         st.subheader("Pourcentage de trains en retard au départ par rapport à la station")
         st.bar_chart(temp, x="Departure station", y="Correlation late / nb of trains", height=400, x_label="Station de départ", y_label="Pourcentage", color="#3C62BD")
-        st.divider()
     with col2:
         st.subheader("Répartition des causes de retards")
         fig1, ax1 = plt.subplots(figsize=(5, 5))
@@ -173,6 +183,7 @@ with graphs:
         ax1.pie(causes_means, labels=causes_means.index, autopct='%1.1f%%', startangle=90, colors=colors, textprops={'fontsize': 10})
         ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
         st.pyplot(fig1, use_container_width=False)
+    st.divider()
 
 with model_stats:
     st.text("Example")
