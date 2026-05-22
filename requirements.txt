@@ -1,8 +1,8 @@
 # Core Dependencies for Project Tardis
 
 # Data Manipulation & Math
-pandas==3.0.3
-numpy==2.4.6
+pandas==3.0.2
+numpy==2.4.4
 
 # Visualization
 matplotlib==3.10.9
@@ -11,6 +11,7 @@ streamlit==1.57.0
 
 # Machine Learning
 scikit-learn==1.8.0
+joblib==1.5.3
 
 # Notebook Support
 ipykernel==7.2.0
