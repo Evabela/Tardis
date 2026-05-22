@@ -149,7 +149,13 @@ with graphs:
         st.pyplot(fig1, use_container_width=False)
 
 with model_stats:
-    st.text("Example")
+    st.title("Statistiques du modèle")
+    st.subheader("🎯 Précision du modèle")
+    st.markdown("Le modèle a une précision de 78% sur les données de test. avec un écart-type de 3% en moyenne")
+    st.subheader("📊 Moyenne de différence avec des vrais retards")
+    st.markdown("En moyenne, le modèle prédit un retard avec 1.18 minutes de différence par rapport aux retards réels.")
+    st.subheader(" Données d'entraînement")
+
 
 with st.sidebar:
     st.title("Prévisions des retards SNCF")
