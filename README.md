@@ -18,6 +18,13 @@ Key features implemented:
 - Predictive Modeling – Implement a basic machine learning model to predict train delays.
 - Dashboard Development – Create an interactive web app using Streamlit to display insights and allow user interaction.
 
+## How to use (on ubuntu)
+1. Make sure that jupyter-lab, pip and venv are installed on your laptop.
+2. Launch the cleaning with `tardis_eda.ipynb` file on jupyter-lab.
+3. Launch the model with `tadis_model.ipynb` file on jupyter-lab.
+4. Export the model to file named `model.joblib`
+5. Launch the dashboard in a venv, with this command : `streamlit run tardis_dashboard.py`.
+
 ## Files on repository
 - `requirements.txt` : All project dependencies
 - `tardis_eda.ipynb` : Data cleaning, exploration, and feature engineering
